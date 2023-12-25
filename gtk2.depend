@@ -1,7 +1,10 @@
 # depslib dependency file v1.0
-1703510343 source:c:\users\i7108\documents\l2\gtk2\main.c
+1703538675 source:c:\users\i7108\documents\l2\gtk2\main.c
 	<gtk/gtk.h>
 	<glib.h>
+	<stdio.h>
+	<string.h>
+	<stdbool.h>
 
 1695931741 c:\msys64\mingw64\include\gtk-4.0\gtk\gtk.h
 	<gtk/css/gtkcss.h>
