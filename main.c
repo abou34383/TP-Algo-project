@@ -121,8 +121,7 @@ void action4(GtkButton *button, data_2 *data2)
     gtk_widget_set_sensitive (clear, false);
     data2->i = (data2->n) - 2;
     data2->j = 0;
-    g_timeout_add_seconds(1, on_timeout, data2);
-
+    g_timeout_add(500, on_timeout, data2);
 
 }
 
