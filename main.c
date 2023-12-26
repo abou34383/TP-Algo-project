@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 typedef struct my_data {
   GtkWidget *window,*entry,*grid;
@@ -12,9 +13,9 @@ typedef struct my_data_1 {
   int n;
 }data_1;
 typedef struct my_data_2 {
-  GtkWidget *grid,**DAT;
+  GtkWidget **FT,**DAT,*grid;
   int n;
-  float *T;
+  float *T,max;
 
 }data_2;
 static void draw_rectangle (GtkDrawingArea *area, cairo_t *cr, int width, int height){
@@ -31,10 +32,11 @@ static void draw_rectangleB (GtkDrawingArea *area, cairo_t *cr, int width, int h
 
 void action4(GtkButton *button,data_2 *data2){
     bool p;
-    int j,tt,i;
-    GtkWidget *fixed;
+    int j,tt,i,num;
+    char *text,*tempT;
+    GtkWidget *fixed,*entry,*temp;
     GtkDrawingArea *t2;
-    fixed = gtk_fixed_new ();
+
     for(i=(data2->n)-2;i>-1;i--){
         for(j=0;j<=i;j++){
 
@@ -42,15 +44,23 @@ void action4(GtkButton *button,data_2 *data2){
                 tt=(data2->T)[j];
                 (data2->T)[j]=(data2->T)[j+1];
                 (data2->T)[j+1]=tt;
+                printf("%f ",(data2->T)[j]);
+                printf("%f ",(data2->T)[j+1]);
+                //change displayed numbers
 
-                fixed=gtk_grid_get_child_at (GTK_GRID (data2->grid), 1, 5);
-                gtk_widget_set_size_request ((data2->DAT)[j], 20, (data2->T)[j]*10);
-                gtk_fixed_put (GTK_FIXED (fixed), (data2->DAT)[j], 10, 100-(data2->T)[j]*10);
+                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid), j+1, 2);
+                sprintf (text, "%d", (int)(data2->T)[j]);
+                gtk_editable_set_text (GTK_ENTRY (entry), text);
+                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid), j+2, 2);
+                sprintf (text, "%d", (int)(data2->T)[j+1]);
+                gtk_editable_set_text (GTK_ENTRY (entry), text);
+                //change places
 
-                fixed=gtk_grid_get_child_at (GTK_GRID (data2->grid), 2, 5);
-                gtk_widget_set_size_request ((data2->DAT)[j+1], 20, (data2->T)[j+1]*10);
-                gtk_fixed_put (GTK_FIXED (fixed), (data2->DAT)[j+1], 50, 100-(data2->T)[j+1]*10);
-
+                gtk_widget_set_size_request ((data2->DAT)[j], 20, ((data2->T)[j]*10*(data2->max)));
+                gtk_fixed_move (GTK_FIXED ((data2->FT)[j]), (data2->DAT)[j], 10, 150-(data2->T)[j]*10*(data2->max));
+                gtk_widget_set_size_request ((data2->DAT)[j+1], 20, (data2->T)[j+1]*10*(data2->max));
+                gtk_fixed_move (GTK_FIXED ((data2->FT)[j+1]), (data2->DAT)[j+1], 10, 150-(data2->T)[j+1]*10*(data2->max));
+                usleep(5000);
             }
 
         }
@@ -65,7 +75,7 @@ void action3(GtkButton *button,data_1 *data1){
     int num,res;
     float *T,max=1;
     bool p=true;
-    GtkWidget *entry,*fixed;
+    GtkWidget *entry,**FT;
     GtkDrawingArea **DAT;
     char *text,message[45]="error n must be a number not a text in case ";
 
@@ -85,8 +95,8 @@ void action3(GtkButton *button,data_1 *data1){
         text = gtk_editable_get_text (GTK_EDITABLE (entry));
       res = sscanf (text, "%d", &num);
       if (res == 1){
-        if(T[i-1]>max){
-            max=T[i-1];
+        if(num>max){
+            max=num;
         }
         T[i-1]=num;
         printf("%f ",T[i-1]);
@@ -106,28 +116,34 @@ void action3(GtkButton *button,data_1 *data1){
     }
 
     if(p==true){
-
+        if(max>10){
+            max=10/max;
+            printf("max = %f ",max);
+        }else max=1;
         DAT=(GtkDrawingArea **)malloc(sizeof(GtkWidget *)*(data1->n));
         GtkDrawingArea *base;
+        FT=( GtkWidget **)malloc(sizeof( GtkWidget *)*(data1->n));
         for(int i=1;i<=data1->n;i++){
 
             DAT[i-1]=gtk_drawing_area_new ();
-            fixed = gtk_fixed_new ();
-            gtk_grid_attach (GTK_GRID (data1->grid), fixed, i, 5, 1, 1);
+            FT[i-1]= gtk_fixed_new ();
+            gtk_grid_attach (GTK_GRID (data1->grid), FT[i-1], i, 5, 1, 1);
             gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (DAT[i-1]), draw_rectangle, NULL, NULL);
-            gtk_widget_set_size_request (DAT[i-1], 20, T[i-1]*10);//x is fixed y (the scond one must change)
-            gtk_fixed_put (GTK_FIXED (fixed), DAT[i-1], 10, 100-T[i-1]*10);
+            gtk_widget_set_size_request (DAT[i-1], 20, (T[i-1]*10*max));//x is fixed y (the second one must change)
+            gtk_fixed_put (GTK_FIXED (FT[i-1]), DAT[i-1], 10, 150-(T[i-1]*10*max));
             base=gtk_drawing_area_new ();
             gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (base), draw_rectangleB, NULL, NULL);
-             gtk_widget_set_size_request (base, 20, 2);
-             gtk_fixed_put (GTK_FIXED (fixed), base, 10, 100);
+             gtk_widget_set_size_request (base, 30, 2);
+             gtk_fixed_put (GTK_FIXED (FT[i-1]), base, 5, 149);
         }
         data_2 *data2;
         data2=(data_2 *)malloc(sizeof(data_2));
         data2->DAT=DAT;
-        data2->grid=data1->grid;
+        data2->FT=FT;
         data2->T=T;
         data2->n=data1->n;
+        data2->max=max;
+        data2->grid=data1->grid;
         gtk_widget_set_sensitive (button, FALSE);
         g_signal_connect (data1->button, "clicked", G_CALLBACK (action4),data2);
         gtk_widget_set_sensitive (data1->button, true);
