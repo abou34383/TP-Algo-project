@@ -14,10 +14,17 @@ typedef struct my_data_1 {
 }data_1;
 typedef struct my_data_2 {
   GtkWidget **FT,**DAT,*grid;
-  int n;
+  int n,i,j;
   float *T,max;
 
 }data_2;
+
+static void draw_rectangleRED (GtkDrawingArea *area, cairo_t *cr, int width, int height){
+  cairo_set_source_rgb (cr, 1, 0, 0);
+  cairo_rectangle (cr, 0, 0, width, height);
+  cairo_fill (cr);
+}
+
 static void draw_rectangle (GtkDrawingArea *area, cairo_t *cr, int width, int height){
   cairo_set_source_rgb (cr, 0, 0, 1);
   cairo_rectangle (cr, 0, 0, width, height);
@@ -30,46 +37,77 @@ static void draw_rectangleB (GtkDrawingArea *area, cairo_t *cr, int width, int h
   cairo_fill (cr);
 }
 
-void action4(GtkButton *button,data_2 *data2){
-    bool p;
-    int j,tt,i,num;
-    char *text,*tempT;
-    GtkWidget *fixed,*entry,*temp;
-    GtkDrawingArea *t2;
+void affich(int *t,int n,int j){
+    for(int i=0;i<n;i++){
+        if(i==j) printf("[%d] ",t[i]);
+        else printf("%d ",t[i]);
+    }
+    printf("\n");
+}
 
-    for(i=(data2->n)-2;i>-1;i--){
-        for(j=0;j<=i;j++){
+static  gboolean on_timeout(data_2 *data2)
+{
+    char *text;
+    GtkWidget *entry;
 
-            if((data2->T)[j]>(data2->T)[j+1]){
-                tt=(data2->T)[j];
-                (data2->T)[j]=(data2->T)[j+1];
-                (data2->T)[j+1]=tt;
-                printf("%f ",(data2->T)[j]);
-                printf("%f ",(data2->T)[j+1]);
-                //change displayed numbers
+    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA ((data2->DAT)[data2->j]), draw_rectangleRED, NULL, NULL);
 
-                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid), j+1, 2);
-                sprintf (text, "%d", (int)(data2->T)[j]);
+
+
+    if (data2->i < 0)
+    {
+        return FALSE;
+    }
+    if (data2->j > data2->i)
+    {
+        gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA ((data2->DAT)[data2->j]), draw_rectangle, NULL, NULL);
+        data2->i--;
+        data2->j = 0;
+        if (data2->i < 0)
+        {
+            return FALSE;
+        }
+    }
+    if ((data2->T)[data2->j] > (data2->T)[data2->j + 1])
+    {
+        int tt = (data2->T)[data2->j];
+        (data2->T)[data2->j] = (data2->T)[data2->j + 1];
+        (data2->T)[data2->j + 1] = tt;
+        for(int k=0;k<data2->n;k++){
+            printf("T[%d]=%f ",k, (data2->T)[k]);
+        }
+        printf("\n");
+
+                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid),data2->j+1, 2);
+                sprintf (text, "%d", (int)(data2->T)[data2->j]);
                 gtk_editable_set_text (GTK_ENTRY (entry), text);
-                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid), j+2, 2);
-                sprintf (text, "%d", (int)(data2->T)[j+1]);
+                entry = gtk_grid_get_child_at (GTK_GRID (data2->grid), data2->j+2, 2);
+                sprintf (text, "%d", (int)(data2->T)[data2->j + 1]);
                 gtk_editable_set_text (GTK_ENTRY (entry), text);
                 //change places
-
-                gtk_widget_set_size_request ((data2->DAT)[j], 20, ((data2->T)[j]*10*(data2->max)));
-                gtk_fixed_move (GTK_FIXED ((data2->FT)[j]), (data2->DAT)[j], 10, 150-(data2->T)[j]*10*(data2->max));
-                gtk_widget_set_size_request ((data2->DAT)[j+1], 20, (data2->T)[j+1]*10*(data2->max));
-                gtk_fixed_move (GTK_FIXED ((data2->FT)[j+1]), (data2->DAT)[j+1], 10, 150-(data2->T)[j+1]*10*(data2->max));
-                usleep(5000);
-            }
-
-        }
-
+                gtk_widget_set_size_request ((data2->DAT)[data2->j], 20, ((data2->T)[data2->j]*10*(data2->max)));
+                gtk_fixed_move (GTK_FIXED ((data2->FT)[data2->j]), (data2->DAT)[data2->j], 10, 150-(data2->T)[data2->j]*10*(data2->max));
+                gtk_widget_set_size_request ((data2->DAT)[data2->j + 1], 20, (data2->T)[data2->j + 1]*10*(data2->max));
+                gtk_fixed_move (GTK_FIXED ((data2->FT)[data2->j + 1]), (data2->DAT)[data2->j + 1], 10, 150-(data2->T)[data2->j + 1]*10*(data2->max));
 
     }
-
-
+    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA ((data2->DAT)[data2->j]), draw_rectangle, NULL, NULL);
+    // increment the inner loop index
+    data2->j++;
+    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA ((data2->DAT)[data2->j]), draw_rectangleRED, NULL, NULL);
+    return TRUE; // continue the loop
 }
+
+void action4(GtkButton *button, data_2 *data2)
+{
+    bool p;
+    int num;
+
+    data2->i = (data2->n) - 2;
+    data2->j = 0;
+    g_timeout_add_seconds(1, on_timeout, data2);
+}
+
 
 void action3(GtkButton *button,data_1 *data1){
     int num,res;
@@ -78,8 +116,6 @@ void action3(GtkButton *button,data_1 *data1){
     GtkWidget *entry,**FT;
     GtkDrawingArea **DAT;
     char *text,message[45]="error n must be a number not a text in case ";
-
-
     T=(float *)malloc(sizeof(float )*(data1->n));
     gint response;
     GtkWidget *dialog, *label, *content_area;
@@ -124,7 +160,6 @@ void action3(GtkButton *button,data_1 *data1){
         GtkDrawingArea *base;
         FT=( GtkWidget **)malloc(sizeof( GtkWidget *)*(data1->n));
         for(int i=1;i<=data1->n;i++){
-
             DAT[i-1]=gtk_drawing_area_new ();
             FT[i-1]= gtk_fixed_new ();
             gtk_grid_attach (GTK_GRID (data1->grid), FT[i-1], i, 5, 1, 1);
@@ -136,6 +171,7 @@ void action3(GtkButton *button,data_1 *data1){
              gtk_widget_set_size_request (base, 30, 2);
              gtk_fixed_put (GTK_FIXED (FT[i-1]), base, 5, 149);
         }
+        gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (DAT[0]), draw_rectangleRED, NULL, NULL);
         data_2 *data2;
         data2=(data_2 *)malloc(sizeof(data_2));
         data2->DAT=DAT;
