@@ -76,6 +76,7 @@ static gboolean on_timeout(data_2 *data2)
 
     if (data2->i < 0)
     {
+        gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA((data2->DAT)[0]), draw_rectangleGR, NULL, NULL);
         gtk_widget_set_sensitive(clear, true);
         return FALSE;
     }
@@ -86,6 +87,7 @@ static gboolean on_timeout(data_2 *data2)
         data2->j = 0;
         if (data2->i < 0)
         {
+            gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA((data2->DAT)[0]), draw_rectangleGR, NULL, NULL);
             gtk_widget_set_sensitive(clear, true);
             return FALSE;
         }
