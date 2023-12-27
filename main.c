@@ -63,7 +63,7 @@ void action5(GtkButton *clear, GtkWidget *grid)
             gtk_grid_remove_row(grid, i);
             printf("I:%d \n", i);
         }
-        gtk_widget_set_sensitive(clear, false);
+
         gtk_widget_set_sensitive(enter, true);
     }
 }
@@ -137,14 +137,13 @@ void action3(GtkButton *button, data_1 *data1)
     int num, res;
     float *T, max = 1;
     bool p = true;
-    GtkWidget *entry, **FT;
+    GtkWidget *entry, **FT,*label;
     GtkDrawingArea **DAT;
-
-    char *text, message[45] = "error n must be a number not a text in case ";
-    T = (float *)malloc(sizeof(float) * (data1->n));
     gint response;
-    GtkWidget *dialog, *label, *content_area;
+    GtkWidget *dialog, *content_area;
     GtkDialogFlags flags;
+    char *text,scale[5]="1->", message[45] = "error n must be a number not a text in case ";
+    T = (float *)malloc(sizeof(float) * (data1->n));
     flags = GTK_DIALOG_DESTROY_WITH_PARENT; // the dialog box is here
     dialog = gtk_dialog_new_with_buttons("Message", GTK_WINDOW(data1->window), flags, "_OK", GTK_RESPONSE_NONE, NULL);
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
@@ -215,6 +214,34 @@ void action3(GtkButton *button, data_1 *data1)
         data2->max = max;
         data2->grid = data1->grid;
         gtk_widget_set_sensitive(button, FALSE);
+
+        content_area= gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+        gtk_box_set_homogeneous (GTK_BOX (content_area), TRUE);
+    //fill the empty area kinda
+        label = gtk_label_new("");
+        gtk_label_set_markup (GTK_LABEL (label), "<span font='Arial' foreground='black' weight='bold'>Now the app is going to do the work four you !</span>");
+
+        gtk_box_append (GTK_BOX (content_area), label);
+
+        label = gtk_label_new("");
+        gtk_label_set_markup (GTK_LABEL (label), "<span font='Arial' foreground='black' weight='bold'>the Scaling of the bars is on :</span>");
+
+        gtk_box_append (GTK_BOX (content_area), label);
+
+            sprintf(text, "%f", 1/max);//
+            strcat(scale, text);
+            label = gtk_label_new(scale);
+
+            GtkCssProvider *provider = gtk_css_provider_new ();
+            gtk_css_provider_load_from_data (provider, "label { font-size: 20pt;font-family: 'Arial'; font-weight: bold; }", -1);
+            GtkStyleContext *context = gtk_widget_get_style_context (label);
+            gtk_style_context_add_provider (context, GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+            gtk_box_append (GTK_BOX (content_area), label);
+
+
+        gtk_grid_attach(GTK_GRID(data1->grid), content_area, 0, 5, 1, 1);//put the box in the main grid
+
         g_signal_connect(data1->button, "clicked", G_CALLBACK(action4), data2);
         gtk_widget_set_sensitive(data1->button, true);
     }
@@ -230,7 +257,8 @@ void action2(int N, gpointer *window, gpointer *grid)
     char ch[2];
     label = gtk_label_new("");
     gtk_grid_attach(GTK_GRID(grid), label, 0, 1, 1, 1);
-    label = gtk_label_new("please complete the table with numbers :");
+    label = gtk_label_new("");
+    gtk_label_set_markup (GTK_LABEL (label), "<span font='Arial' foreground='black' weight='bold'>Please complete the table with numbers :</span>");
     gtk_grid_attach(GTK_GRID(grid), label, 0, 2, 1, 1);
     for (i = 1; i <= N; i++)
     {
@@ -248,7 +276,7 @@ void action2(int N, gpointer *window, gpointer *grid)
 
     buttonTR = gtk_button_new_with_label("trie");
     gtk_widget_set_sensitive(buttonTR, FALSE);
-    // the button trie action here
+    // the button tri action here
     gtk_box_append(GTK_BOX(box), buttonTR);
     button = gtk_button_new_with_label("Ready");
     data1->grid = grid;
@@ -311,7 +339,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     data *data1;
     data1 = (data *)malloc(sizeof(data));
     window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), "Window"); // the window is here
+    gtk_window_set_title(GTK_WINDOW(window), "Tri a bulles"); // the window is here
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
     grid = gtk_grid_new();
     gtk_window_set_child(GTK_WINDOW(window), grid);
@@ -322,11 +350,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_entry_set_max_length(GTK_ENTRY(entry), 5);
     enter = gtk_button_new_with_label("Enter");
     clear = gtk_button_new_with_label("Clear");
+    gtk_widget_set_sensitive(clear, false);
     gtk_grid_attach(GTK_GRID(grid1), label, 0, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(grid1), entry, 1, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(grid1), enter, 2, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(grid1), clear, 3, 0, 1, 1);
-    gtk_widget_set_sensitive(clear, false);
+
 
     gtk_grid_attach(GTK_GRID(grid), grid1, 0, 0, 1, 1);
 
