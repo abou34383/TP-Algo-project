@@ -346,7 +346,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     GtkWidget *grid, *grid1;
     GtkWidget *label;
     GtkWidget *entry;
-   data *data1;
+    data *data1;
     data1 = (data *)malloc(sizeof(data));
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "Tri a bulles"); // the window is here
